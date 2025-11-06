@@ -16,7 +16,7 @@ The “stm32-zephyr-watchdog-threads ramirezramiro — STM32L0 Zephyr LED + Watc
 - Native `native_sim` test suites for fast CI regression
 - Available for custom RAM/watchdog tuning — see contact below.
 
-**Need integration help or custom features?** Commercial consulting available at: consulting@ramirezramiro.dev.
+**Need integration help or custom features?** Open a GitHub issue or connect via [LinkedIn](https://www.linkedin.com/in/ramiro-ramirez-tw/).
 
 
 ## 🧠 Debugging Summary
@@ -225,7 +225,7 @@ Reset: If no feed occurs within the WDT window, the independent watchdog resets 
 
 - The STM32L053 only offers 8 KB of SRAM; the default stack sizes (main 1568 B, ISR 1024 B, health 704 B, supervisor 672 B, recovery 512 B) are tuned to keep the firmware stable while still leaving a few hundred bytes free.
 - If you enable optional features like the UART command thread or add new peripherals, revisit these stack values with Zephyr’s thread analyzer; there isn’t much room to grow without trimming other workloads.
-- I offer consulting to profile stack usage, prune features, and deliver tailored builds that hit your RAM or watchdog constraints regarding Nucleo L053R8. Ping consulting@ramirezramiro.dev to discuss scope.
+- I offer consulting to profile stack usage, prune features, and deliver tailored builds that hit your RAM or watchdog constraints regarding Nucleo L053R8. Reach out through a GitHub issue or [LinkedIn](https://www.linkedin.com/in/ramiro-ramirez-tw/) to discuss scope.
 
 ## ⚡ Quick Start (Full Workflow)
 
