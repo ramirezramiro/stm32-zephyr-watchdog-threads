@@ -1,0 +1,55 @@
+name: Native Sim Tests
+
+on:
+  push:
+    branches: [ "main", "master" ]
+  pull_request:
+    branches: [ "main", "master" ]
+
+jobs:
+  native-sim:
+    runs-on: ubuntu-latest
+
+    env:
+      ZEPHYR_BASE: ${{ github.workspace }}/zephyr
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Install build dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ninja-build gcc-multilib libc6-dev-i386 python3-pip
+
+      - name: Initialize west workspace
+        run: |
+          pip install --user west
+          python3 -m west init -l .
+          python3 -m west update
+          python3 -m west zephyr-export
+          pip install --user -r ${ZEPHYR_BASE}/scripts/requirements-base.txt
+
+      - name: Build persist_state native_sim tests
+        run: |
+          source ${ZEPHYR_BASE}/zephyr-env.sh
+          west build -b native_sim -p always tests/persist_state --build-dir build/tests/persist_state
+        shell: bash
+
+      - name: Run persist_state native_sim tests
+        run: |
+          source ${ZEPHYR_BASE}/zephyr-env.sh
+          west build -t run --build-dir build/tests/persist_state
+        shell: bash
+
+      - name: Build supervisor native_sim tests
+        run: |
+          source ${ZEPHYR_BASE}/zephyr-env.sh
+          west build -b native_sim -p always tests/supervisor --build-dir build/tests/supervisor
+        shell: bash
+
+      - name: Run supervisor native_sim tests
+        run: |
+          source ${ZEPHYR_BASE}/zephyr-env.sh
+          west build -t run --build-dir build/tests/supervisor
+        shell: bash

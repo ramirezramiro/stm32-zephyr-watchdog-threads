@@ -1,0 +1,9 @@
+&code_partition {
+	/delete-property/ zephyr,code-partition;
+};
+
+/ {
+	chosen {
+		zephyr,code-partition = &code_partition;
+	};
+};

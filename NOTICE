@@ -1,0 +1,11 @@
+stm32-zephyr-watchdog-threads ramirezramiro — STM32L0
+Copyright (c) 2025 Ramiro Ramirez
+
+This distribution demonstrates a hardened watchdog, persistence, and recovery
+stack that cuts bring-up time from weeks to days for STM32L0/Zephyr projects.
+
+If you reuse this work, please acknowledge it in your product documentation
+and derivative repositories by referencing "stm32-zephyr-watchdog-threads ramirezramiro".
+
+For professional inquiries, open a GitHub issue or connect via
+[LinkedIn](https://www.linkedin.com/in/ramiro-ramirez-tw/).

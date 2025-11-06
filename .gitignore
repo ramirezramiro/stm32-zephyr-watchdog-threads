@@ -1,0 +1,26 @@
+# Build artifacts
+build/
+build-*/
+twister-out/
+*.elf
+*.hex
+*.bin
+*.map
+
+# West and Zephyr download cache
+zephyr/
+modules/
+tools/
+
+# Python cache
+__pycache__/
+*.pyc
+
+# VS Code / IDE metadata
+.vscode/
+.idea/
+.DS_Store
+
+# Temporary files
+*.swp
+*.log

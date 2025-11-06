@@ -1,0 +1,68 @@
+menu "LED Threads Application"
+
+config APP_WATCHDOG_BOOT_TIMEOUT_MS
+	int "Boot watchdog timeout (ms)"
+	default 8000
+	range 100 60000
+	help
+	  Initial watchdog timeout applied during system startup. Use a large
+	  value to cover expensive init sequences.
+
+config APP_WATCHDOG_STEADY_TIMEOUT_MS
+	int "Steady-state watchdog timeout (ms)"
+	default 2000
+	range 100 60000
+	help
+	  Watchdog timeout that the supervisor applies once the system has
+	  reached its steady state.
+
+config APP_WATCHDOG_RETUNE_DELAY_MS
+	int "Delay before watchdog retune (ms)"
+	default 5000
+	range 0 60000
+	help
+	  Duration after boot before the watchdog is tightened to the
+	  steady-state timeout.
+
+config APP_RESET_WATCHDOG_THRESHOLD
+	int "Watchdog reset storm threshold"
+	default 3
+	range 1 20
+	help
+	  Number of consecutive watchdog resets that triggers fallback mode.
+
+config APP_HEALTH_LED_STALE_MS
+	int "LED heartbeat stale threshold (ms)"
+	default 1500
+	range 100 10000
+	help
+	  Maximum allowed age of the LED thread heartbeat before it is
+	  considered stale.
+
+config APP_HEALTH_SYS_STALE_MS
+	int "System heartbeat stale threshold (ms)"
+	default 1500
+	range 100 10000
+	help
+	  Maximum allowed age of the system heartbeat before it is
+	  considered stale.
+
+config APP_ENABLE_UART_COMMANDS
+	bool "Enable UART command handler"
+	default y
+	help
+	  Enable a minimal UART command parser for runtime configuration of
+	  watchdog parameters. Disable if RAM usage is too tight.
+
+config APP_SAFE_MODE_REBOOT_DELAY_MS
+	int "Safe-mode auto reboot delay (ms)"
+	default 60000
+	range 0 300000
+	help
+	  When fallback (safe) mode is entered, schedule an automatic warm
+	  reboot after this many milliseconds. Set to 0 to keep the system in
+	  safe mode indefinitely.
+
+endmenu
+
+source "Kconfig.zephyr"

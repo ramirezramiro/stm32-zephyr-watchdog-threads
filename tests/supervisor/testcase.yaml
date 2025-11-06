@@ -1,0 +1,7 @@
+tests:
+  led_threads.supervisor:
+    platform_allow:
+      - native_sim
+    tags:
+      - supervisor
+      - app

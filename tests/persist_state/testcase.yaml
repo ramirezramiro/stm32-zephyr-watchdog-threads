@@ -1,0 +1,7 @@
+tests:
+  led_threads.persist_state:
+    platform_allow:
+      - native_sim
+    tags:
+      - persist
+      - app
