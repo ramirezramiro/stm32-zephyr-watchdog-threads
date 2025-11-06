@@ -103,10 +103,12 @@ stm32-zephyr-watchdog-threads/
 ├── .github/
 │   └── workflows/
 │       └── native-sim.yml
+├── .gitignore
 ├── boards/
 │   ├── README.md
 │   ├── nucleo_l053r8.overlay
 │   └── nucleo_l053r8_app.overlay
+├── build/  (ignored)
 ├── CMakeLists.txt
 ├── Kconfig
 ├── LICENSE
@@ -134,19 +136,20 @@ stm32-zephyr-watchdog-threads/
 │   ├── uart_commands.h
 │   ├── watchdog_ctrl.c
 │   └── watchdog_ctrl.h
-└── tests/
-    ├── persist_state/
-    │   ├── CMakeLists.txt
-    │   ├── app.overlay
-    │   ├── prj.conf
-    │   ├── testcase.yaml
-    │   └── src/main.c
-    ├── supervisor/
-    │   ├── CMakeLists.txt
-    │   ├── prj.conf
-    │   ├── testcase.yaml
-    │   └── src/main.c
-    └── README.md
+├── tests/
+│   ├── persist_state/
+│   │   ├── CMakeLists.txt
+│   │   ├── app.overlay
+│   │   ├── prj.conf
+│   │   ├── testcase.yaml
+│   │   └── src/main.c
+│   ├── supervisor/
+│   │   ├── CMakeLists.txt
+│   │   ├── prj.conf
+│   │   ├── testcase.yaml
+│   │   └── src/main.c
+│   └── README.md
+└── west.yml
 ```
 
 ```mermaid
@@ -344,6 +347,7 @@ flowchart TD
   kconfig -. reads .-> prjconf[prj.conf + Kconfig]
   dts -. reads .-> overlays[`boards/*.overlay`<br/>+ test overlays]
   ninja -. compiles .-> sources[src/*.c<br/>+ testsuite sources]
+  cfg -. manifest .-> manifest[west.yml]
 ```
 
 ## 🔩 Flash and Runtime Flowchart
@@ -359,12 +363,16 @@ flowchart TD
 
   subgraph Runtime 'main thread'
     reset --> mainInit[`void main` init]
-    mainInit --> persistInit[persist_state_init<br/>'load counters, record boot']
-    mainInit --> watchdogInit[watchdog_ctrl_init<br/>'boot timeout, first feed']
-    mainInit --> recoveryStart[recovery_start<br/>'safe-mode workqueue']
-    mainInit --> supervisorStart[supervisor_start<br/'grace, retune plan']
-    mainInit --> healthSpawn[spawn health thread<br/>'LED + heartbeat']
-    mainInit --> uartSpawn[optional UART thread<br/>'timeout overrides']
+    mainInit --> persistInit[persist_state_init]
+    persistInit --> resetCause[log_reset_cause &<br/>persist_state_record_boot]
+    resetCause --> fallbackCheck[persist_state_is_fallback_active]
+    fallbackCheck --> recoveryStart[recovery_start]
+    recoveryStart --> safeModeSched[recovery_schedule_safe_mode_reboot]
+    fallbackCheck --> timeoutCalc[Compute watchdog timeouts<br/>boot/steady/retune + overrides]
+    timeoutCalc --> watchdogInit[watchdog_ctrl_init<br/>'boot timeout, first feed']
+    watchdogInit --> healthSpawn[spawn health thread<br/>'LED + heartbeat']
+    watchdogInit --> supervisorStart[supervisor_start<br/'grace, retune plan']
+    watchdogInit --> uartSpawn[optional UART thread<br/>'timeout overrides']
   end
 
   subgraph Supervisor Loop
@@ -376,13 +384,14 @@ flowchart TD
     feedDog --> clearCounters[persist_state_clear<br/>when stable]
     feedGate -->|no| logDegrade[`EVT,HEALTH,DEGRADED`]
     logDegrade --> recoveryReq[recovery_request<br/>'health fault']
-    recoveryReq --> reset
   end
 
   watchdogInit --> iwdgHW[IWDG hardware]
   iwdgHW --> reset
   uartSpawn --> supervisorStart
   persistInit --> supervisorStart
+  recoveryReq --> reset
+  safeModeSched --> reset
 ```
 
 ## 📡 Telemetry & Safe Mode Notes
