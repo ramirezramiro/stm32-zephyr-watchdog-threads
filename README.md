@@ -414,6 +414,10 @@ The repository includes a top-level `.gitignore` that keeps transient build prod
 
 This keeps the repo clean for reviewers while still allowing personal tooling during development.
 
+## 📝 Under Review
+
+- The GitHub Actions native_sim workflow (`.github/workflows/native-sim.yml`) is currently red while we refine the CI bootstrap. Check the latest Actions run for logs; contributions that restore a green badge are welcome.
+
 ## References
 
 | Topic / Document                                     | Section / Link                         | Key Insight                                                                                   |
