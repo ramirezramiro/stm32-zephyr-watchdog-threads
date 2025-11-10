@@ -415,9 +415,9 @@ The repository includes a top-level `.gitignore` that keeps transient build prod
 
 This keeps the repo clean for reviewers while still allowing personal tooling during development.
 
-## 📝 Under Review
+## ✅ CI Status
 
-- The GitHub Actions native_sim workflow (`.github/workflows/native-sim.yml`) is currently red while we refine the CI bootstrap. Check the latest Actions run for logs; contributions that restore a green badge are welcome.
+The GitHub Actions native_sim workflow (`.github/workflows/native-sim.yml`) now mirrors the local `west build -b native_sim …` instructions and is green. Every push or pull request rebuilds both native simulation suites and runs them under the host toolchain, so the badge at the top of this README reflects the true state of the persistence and supervisor tests. If you see it red, check the latest Actions run for logs—fixes should restore the green badge before merging.
 
 ## References
 
