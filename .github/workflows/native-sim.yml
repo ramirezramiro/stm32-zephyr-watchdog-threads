@@ -10,9 +10,6 @@ jobs:
   native-sim:
     runs-on: ubuntu-latest
 
-    env:
-      ZEPHYR_BASE: ${{ github.workspace }}/zephyr
-
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -28,7 +25,9 @@ jobs:
           python3 -m west init -l .
           python3 -m west update
           python3 -m west zephyr-export
-          pip install --user -r ${ZEPHYR_BASE}/scripts/requirements-base.txt
+          topdir=$(python3 -m west topdir)
+          echo "ZEPHYR_BASE=${topdir}/zephyr" >> "$GITHUB_ENV"
+          pip install --user -r "${topdir}/zephyr/scripts/requirements-base.txt"
 
       - name: Build persist_state native_sim tests
         run: |
