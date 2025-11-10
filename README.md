@@ -6,10 +6,6 @@ A robust demo integrating LED control, heartbeat threads, and a fully managed **
 
 ---
 
-## Zephyr Workspace Prerequisite
-
-This project assumes you already have a Zephyr workspace (including toolchains, Python environment, and `west`) installed locally. Follow the official [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/develop/getting_started/index.html) to install the SDK or host toolchain, create a workspace, and learn how to source `zephyr-env.sh`. Once that environment is ready you can clone this repo inside the workspace (or point `ZEPHYR_BASE` at your Zephyr tree) and run the commands documented below.
-
 ## Consulting & Attribution
 
 The “stm32-zephyr-watchdog-threads ramirezramiro — STM32L0 Zephyr LED + Watchdog + Thread Health Monitor” project ships a production-ready STM32L0 watchdog, persistence, and recovery stack that routinely cuts Zephyr bring-up time from weeks to days. If you reuse it, please cite the full project name, keep the included NOTICE file, and consider linking back to this repository. **Need integration help or custom features?** Open a GitHub issue or connect via [LinkedIn](https://www.linkedin.com/in/ramiro-ramirez-tw/).
@@ -19,6 +15,86 @@ The “stm32-zephyr-watchdog-threads ramirezramiro — STM32L0 Zephyr LED + Watc
 - Safe-mode recovery flow with supervisor health gating
 - Native `native_sim` test suites for fast CI regression
 - Available for custom RAM/watchdog tuning — see contact below.
+
+## Zephyr Workspace Prerequisite
+
+This project assumes you already have a Zephyr workspace (including toolchains, Python environment, and `west`) installed locally. Follow the official [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/develop/getting_started/index.html) to install the SDK or host toolchain, create a workspace, and learn how to source `zephyr-env.sh`. Once that environment is ready you can clone this repo inside the workspace (or point `ZEPHYR_BASE` at your Zephyr tree) and run the commands documented below.
+
+## ⚡ Quick Start (Full Workflow)
+
+Follow this sequence to go from setup to live serial monitoring:
+
+1. Windows Powershell (admin rights)
+
+This exposes the STM32 (ST-Link) to our WSL distribution.
+
+   - Confirm `usbipd` is updated (v2.3 or newer) so hot-plug forwarding is stable.
+   - If multiple boards are connected, take note of the BUSID you want; later steps assume only one ST-Link is shared into WSL.
+   - Consider saving these commands in a PowerShell script so you can attach/detach with a single shortcut.
+
+```bash
+PS C:\OS\system32> usbipd list
+Connected:
+BUSID  VID:PID    DEVICE                                                        STATE
+1-3    0123:456b  ST-Link Debug, USB Mass Storage Device, STMicroelectronic...  Shared
+```
+```bash
+PS C:\OS\system32> usbipd attach --wsl --busid 1-3
+usbipd: info: Using WSL distribution 'Ubuntu-22.04' to attach; the device will be available in all WSL 2 distributions.
+usbipd: info: Detected networking mode 'nat'.
+usbipd: info: Using IP address 168.88.888.1 to reach the host.
+```
+2. WSL (Visual Studio Terminal)
+
+We must run the virtual environment (.venv) to be able to use west for flashing.
+
+   - `source .venv/bin/activate` keeps all Zephyr Python tools aligned with the version in `~/zephyrproject`.
+   - If you maintain the app outside of `~/zephyrproject`, export `ZEPHYR_BASE` before invoking west.
+   - Keep this terminal open throughout development; closing it will drop the forwarded USB connection.
+
+Check if your device is reflected in WSL environment as follows
+
+```bash
+your-user@device-name:$ cd ~/zephyrproject
+your-user@device-name:~/zephyrproject$ source .venv/bin/activate
+(.venv) your-user@device-name:~/zephyrproject$ cd ~/zephyr-apps/stm32-zephyr-watchdog-threads
+(.venv) your-user@device-name:~/zephyr-apps/stm32-zephyr-watchdog-threads$ lsusb
+Bus 001 Device 067: ID 0123:456b STMicroelectronics ST-LINK/V2.1
+```
+
+If the device is shown after using lsusb, we can move on to build and flash our project.
+
+3. Optional host-only smoke test
+
+   - Run `west build -b native_sim tests/persist_state` to confirm multilib support and Python deps before touching hardware.
+   - Follow with `west build -t run --build-dir build/tests/persist_state` if you want to see the persistence suite pass on your workstation.
+
+## 🧰 Build & Flash
+
+```bash
+(.venv) your-user@device-name:~/zephyr-apps/stm32-zephyr-watchdog-threads$ west build -b nucleo_l053r8 -p always .
+(.venv) your-user@device-name:~/zephyr-apps/stm32-zephyr-watchdog-threads$ west flash -r openocd
+```
+
+Ensure UART @ 115200 bps and CONFIG_LOG_MODE_IMMEDIATE=y for real-time output.
+
+> 💡 **UART CLI RAM note:** `CONFIG_APP_ENABLE_UART_COMMANDS=y` launches the `uart_cmd` helper thread with a 288-byte stack plus thread metadata (~96 bytes). Budget roughly 400 bytes of additional SRAM when enabling it on the 8 KB STM32L0.
+
+## 🧪 Testing Snapshot
+
+- Native `native_sim` suites cover persistence (`tests/persist_state`) and
+  supervisor logic (`tests/supervisor`) for fast regression checks without
+  hardware.
+- From the project root:
+
+  ```bash
+  source $ZEPHYR_BASE/zephyr-env.sh
+  west build -b native_sim -p always tests/persist_state --build-dir build/tests/persist_state && west build -t run --build-dir build/tests/persist_state
+  west build -b native_sim -p always tests/supervisor --build-dir build/tests/supervisor && west build -t run --build-dir build/tests/supervisor
+  ```
+- Need the full workflow or troubleshooting tips? See `docs/testing.md`. For
+  exhaustive suite notes, verification commands, and log examples, consult
+  `tests/README.md`.
 
 ## 🧠 Debugging Summary
 
@@ -230,82 +306,6 @@ Reset: If no feed occurs within the WDT window, the independent watchdog resets 
 - The STM32L053 only offers 8 KB of SRAM; the default stack sizes (main 1568 B, ISR 1024 B, health 704 B, supervisor 672 B, recovery 512 B) are tuned to keep the firmware stable while still leaving a few hundred bytes free.
 - If you enable optional features like the UART command thread or add new peripherals, revisit these stack values with Zephyr’s thread analyzer; there isn’t much room to grow without trimming other workloads.
 - I offer consulting to profile stack usage, prune features, and deliver tailored builds that hit your RAM or watchdog constraints regarding Nucleo L053R8. Reach out through a GitHub issue or [LinkedIn](https://www.linkedin.com/in/ramiro-ramirez-tw/) to discuss scope.
-
-## ⚡ Quick Start (Full Workflow)
-
-Follow this sequence to go from setup to live serial monitoring:
-
-1. Windows Powershell (admin rights)
-
-This exposes the STM32 (ST-Link) to our WSL distribution.
-
-   - Confirm `usbipd` is updated (v2.3 or newer) so hot-plug forwarding is stable.
-   - If multiple boards are connected, take note of the BUSID you want; later steps assume only one ST-Link is shared into WSL.
-   - Consider saving these commands in a PowerShell script so you can attach/detach with a single shortcut.
-
-```bash
-PS C:\OS\system32> usbipd list
-Connected:
-BUSID  VID:PID    DEVICE                                                        STATE
-1-3    0123:456b  ST-Link Debug, USB Mass Storage Device, STMicroelectronic...  Shared
-```
-```bash
-PS C:\OS\system32> usbipd attach --wsl --busid 1-3
-usbipd: info: Using WSL distribution 'Ubuntu-22.04' to attach; the device will be available in all WSL 2 distributions.
-usbipd: info: Detected networking mode 'nat'.
-usbipd: info: Using IP address 168.88.888.1 to reach the host.
-```
-2. WSL (Visual Studio Terminal)
-
-We must run the virtual environment (.venv) to be able to use west for flashing.
-
-   - `source .venv/bin/activate` keeps all Zephyr Python tools aligned with the version in `~/zephyrproject`.
-   - If you maintain the app outside of `~/zephyrproject`, export `ZEPHYR_BASE` before invoking west.
-   - Keep this terminal open throughout development; closing it will drop the forwarded USB connection.
-
-Check if your device is reflected in WSL environment as follows
-
-```bash
-your-user@device-name:$ cd ~/zephyrproject
-your-user@device-name:~/zephyrproject$ source .venv/bin/activate
-(.venv) your-user@device-name:~/zephyrproject$ cd ~/zephyr-apps/stm32-zephyr-watchdog-threads
-(.venv) your-user@device-name:~/zephyr-apps/stm32-zephyr-watchdog-threads$ lsusb
-Bus 001 Device 067: ID 0123:456b STMicroelectronics ST-LINK/V2.1
-```
-
-If the device is shown after using lsusb, we can move on to build and flash our project.
-
-3. Optional host-only smoke test
-
-   - Run `west build -b native_sim tests/persist_state` to confirm multilib support and Python deps before touching hardware.
-   - Follow with `west build -t run --build-dir build/tests/persist_state` if you want to see the persistence suite pass on your workstation.
-
-## 🧰 Build & Flash
-
-```bash
-(.venv) your-user@device-name:~/zephyr-apps/stm32-zephyr-watchdog-threads$ west build -b nucleo_l053r8 -p always .
-(.venv) your-user@device-name:~/zephyr-apps/stm32-zephyr-watchdog-threads$ west flash -r openocd
-```
-
-Ensure UART @ 115200 bps and CONFIG_LOG_MODE_IMMEDIATE=y for real-time output.
-
-> 💡 **UART CLI RAM note:** `CONFIG_APP_ENABLE_UART_COMMANDS=y` launches the `uart_cmd` helper thread with a 288-byte stack plus thread metadata (~96 bytes). Budget roughly 400 bytes of additional SRAM when enabling it on the 8 KB STM32L0.
-
-## 🧪 Testing Snapshot
-
-- Native `native_sim` suites cover persistence (`tests/persist_state`) and
-  supervisor logic (`tests/supervisor`) for fast regression checks without
-  hardware.
-- From the project root:
-
-  ```bash
-  source $ZEPHYR_BASE/zephyr-env.sh
-  west build -b native_sim -p always tests/persist_state --build-dir build/tests/persist_state && west build -t run --build-dir build/tests/persist_state
-  west build -b native_sim -p always tests/supervisor --build-dir build/tests/supervisor && west build -t run --build-dir build/tests/supervisor
-  ```
-- Need the full workflow or troubleshooting tips? See `docs/testing.md`. For
-  exhaustive suite notes, verification commands, and log examples, consult
-  `tests/README.md`.
 
 ## 💡 Real-World Applications
 
