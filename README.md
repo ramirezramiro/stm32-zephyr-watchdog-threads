@@ -6,18 +6,19 @@ A robust demo integrating LED control, heartbeat threads, and a fully managed **
 
 ---
 
+## Zephyr Workspace Prerequisite
+
+This project assumes you already have a Zephyr workspace (including toolchains, Python environment, and `west`) installed locally. Follow the official [Zephyr Getting Started Guide](https://docs.zephyrproject.org/latest/develop/getting_started/index.html) to install the SDK or host toolchain, create a workspace, and learn how to source `zephyr-env.sh`. Once that environment is ready you can clone this repo inside the workspace (or point `ZEPHYR_BASE` at your Zephyr tree) and run the commands documented below.
+
 ## Consulting & Attribution
 
-The “stm32-zephyr-watchdog-threads ramirezramiro — STM32L0 Zephyr LED + Watchdog + Thread Health Monitor” project ships a production-ready STM32L0 watchdog, persistence, and recovery stack that routinely cuts Zephyr bring-up time from weeks to days. If you reuse it, please cite the full project name, keep the included NOTICE file, and consider linking back to this repository. For professional inquiries, open a GitHub issue or connect via [LinkedIn](https://www.linkedin.com/in/ramiro-ramirez-tw/).
+The “stm32-zephyr-watchdog-threads ramirezramiro — STM32L0 Zephyr LED + Watchdog + Thread Health Monitor” project ships a production-ready STM32L0 watchdog, persistence, and recovery stack that routinely cuts Zephyr bring-up time from weeks to days. If you reuse it, please cite the full project name, keep the included NOTICE file, and consider linking back to this repository. **Need integration help or custom features?** Open a GitHub issue or connect via [LinkedIn](https://www.linkedin.com/in/ramiro-ramirez-tw/).
 
 **Highlights:**
 - Manual IWDG takeover with structured telemetry and persistence
 - Safe-mode recovery flow with supervisor health gating
 - Native `native_sim` test suites for fast CI regression
 - Available for custom RAM/watchdog tuning — see contact below.
-
-**Need integration help or custom features?** Open a GitHub issue or connect via [LinkedIn](https://www.linkedin.com/in/ramiro-ramirez-tw/).
-
 
 ## 🧠 Debugging Summary
 

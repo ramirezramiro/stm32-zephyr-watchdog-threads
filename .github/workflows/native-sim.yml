@@ -9,6 +9,8 @@ on:
 jobs:
   native-sim:
     runs-on: ubuntu-latest
+    env:
+      ZEPHYR_TOOLCHAIN_VARIANT: host
 
     steps:
       - name: Checkout repository
